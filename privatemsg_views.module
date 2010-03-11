@@ -1,0 +1,17 @@
+<?php
+// $Id$
+
+/**
+ * @file:
+ * Privatemsg_views module.
+ */
+
+/**
+ * Implementation of hook_views_api.
+ */
+function privatemsg_views_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'privatemsg_views'),
+  );
+}
