@@ -10,9 +10,9 @@
  */
 function privatemsg_views_views_data_alter(&$data) {  
   // ----------------------------------------------------------------
-  // privatemsg table -- basic table information.
+  // pm_message table
+  
   $data['pm_message']['table']['group']  = t('Privatemsg');
-  // Advertise this table as a possible base table
   $data['pm_message']['table']['base'] = array(
     'field' => 'mid',
     'title' => t('Private message'),
@@ -26,9 +26,6 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
   );
   
-  // ----------------------------------------------------------------
-  // pm_message table -- fields
-
   // mid
   $data['pm_message']['mid'] = array(
     'title' => t('Mesage Id'),
@@ -41,7 +38,7 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
   );
   
-  // Title
+  // subject
   $data['pm_message']['subject'] = array(
     'title' => t('Subject'),
     'help' => t('The subject of the message.'),
@@ -61,11 +58,10 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
   );
 
-  // Body field
+  // body
   $data['pm_message']['body'] = array(
     'title' => t('Body'), // The item it appears as on the UI,
     'help' => t('The body of the message.'), // The help that appears on the UI,
-     // Information for displaying a title as a field
     'field' => array(
       'handler' => 'views_handler_field_markup',
       'format' => variable_get('filter_default_format', 1), // The name of the format field or an integer
@@ -75,7 +71,7 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
   );
 
-  // Author field
+  // author
   $data['pm_message']['author'] = array(
     'title' => t('Author'),
     'help' => t('Author of the message.'),
@@ -89,9 +85,15 @@ function privatemsg_views_views_data_alter(&$data) {
       'handler' => 'views_handler_sort',
       'click sortable' => TRUE,
     ),
+    'relationship' => array(
+      'label' => t('author'),
+      'help' => t('Private message authors.'),
+      'base' => 'users',
+      'base field' => 'uid',
+    ),
   );
 
-  // Created field
+  // sent
   $data['pm_message']['timestamp'] = array(
     'title' => t('Sent date'),
     'help' => t('The date and time when the message was sent.'),
@@ -109,15 +111,10 @@ function privatemsg_views_views_data_alter(&$data) {
   );
   
   // ----------------------------------------------------------------------
-  // privatemsg message instance table
-
-  // Define the base group of this table. Fields that don't
-  // have a group defined will go into this field by default.
+  // pm_index table
+  
   $data['pm_index']['table']['group']  = t('Privatemsg');
-
-  // For other base tables, explain how we join
   $data['pm_index']['table']['join'] = array(
-    // Directly link to privatemsg table.
     'pm_message' => array(
       'left_field' => 'mid',
       'field' => 'mid',
@@ -129,12 +126,10 @@ function privatemsg_views_views_data_alter(&$data) {
   $data['pm_index']['thread_id'] = array(
     'title' => t('Message thread'),
     'help' => t('Messages thread ID.'),
-    // Information for displaying the nid
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
     ),
-    // Information for accepting a mid as an argument
     'argument' => array(
       'handler' => 'views_handler_argument_numeric',
       'name field' => 'subject', // the field to display in the summary.
@@ -153,9 +148,15 @@ function privatemsg_views_views_data_alter(&$data) {
       'numeric' => TRUE,
       'validate type' => 'numeric',
     ),
+    'relationship' => array(
+      'label' => t('participant'),
+      'help' => t('Users that are either authors or recipients.'),
+      'base' => 'users',
+      'base field' => 'uid',
+    ),
   );
   
-  // "New" marker
+  // is_new
   $data['pm_index']['is_new'] = array(
     'title' => t('New ?'),
     'help' => t('Whether the user has read this message.'),
@@ -173,7 +174,7 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
   );
 
-  // "Deleted" internal flag.
+  // deleted
   $data['pm_index']['deleted'] = array(
     'title' => t('Deleted ?'),
     'help' => t('Whether the user has deleted this message.'),
@@ -211,10 +212,11 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
   );
 
+  
   // ----------------------------------------------------------------------
   // Pseudo tables to emulate aggregate queries.
   
-  // First message.
+  // first message filter table.
   $data['pmi2']['table']['group']  = t('Privatemsg');
   $data['pmi2']['table']['join'] = array(
     'pm_message' => array(
@@ -233,7 +235,7 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
   );
 
-  // Last message.
+  // last message filter table.
   $data['pmi3']['table']['group']  = t('Privatemsg');
   $data['pmi3']['table']['join'] = array(
     'pm_message' => array(
@@ -249,16 +251,7 @@ function privatemsg_views_views_data_alter(&$data) {
     'help' => t('Turns private message list into list of last messages.'),
     'filter' => array(
       'handler' => 'privatemsg_views_handler_filter_is_null',
-      //'allow empty' => TRUE,
     ),
-  );
-    
-  // ----------------------------------------------------------------------
-  // Join users table to ours
-  $data['users']['table']['join']['pm_message'] = array(
-    'left_field' => 'author',
-    'field' => 'uid',
-    'type' => 'INNER',  
   );
   
 }

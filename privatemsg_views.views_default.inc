@@ -160,7 +160,7 @@ function privatemsg_views_views_default_views() {
     'label' => 'Thread',
     'alter' => array(
       'alter_text' => 1,
-      'text' => '<strong><span class=\'pm-subject\'>[subject]</span></strong><em><span class=\'pm-msg-teaser\'>[body]</span></em>',
+      'text' => '<strong><span class=\'pm-subject\'>[subject]</span></strong> <em><span class=\'pm-msg-teaser\'>[body]</span></em>',
       'make_link' => 1,
       'path' => 'messages/view/[thread_id]',
       'link_class' => 'privatemsg-thread-link',
@@ -352,7 +352,7 @@ function privatemsg_views_views_default_views() {
   ),
   'default' => '-1',
   ));
-  
+
   $views[$view->name] = $view;
   return $views;
 }

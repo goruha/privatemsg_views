@@ -42,7 +42,7 @@ class privatemsg_views_handler_field_participants extends views_handler_field_pr
     foreach ($values as $value) {
       if (!empty($value->{$this->field_alias})) {
         $thread_id = $value->{$this->field_alias};
-        $result = db_query("SELECT DISTINCT(pmi.uid), u.name FROM {pm_index} pmi LEFT JOIN {users} u ON pmi.uid = u.uid WHERE pmi.thread_id = %d", $thread_id);
+        $result = db_query("SELECT DISTINCT(pmi.uid), u.name FROM {pm_index} pmi INNER JOIN {users} u ON pmi.uid = u.uid LEFT JOIN {pm_message} m ON m.author = pmi.uid WHERE pmi.thread_id = %d ORDER BY m.timestamp ASC", $thread_id);
         while ($thread = db_fetch_object($result)) {
           $uid = $thread->uid;
           $username = $thread->name;

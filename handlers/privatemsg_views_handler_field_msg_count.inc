@@ -7,6 +7,11 @@
  * 
  */
 class privatemsg_views_handler_field_msg_count extends views_handler_field_prerender_list {
+  function init(&$view, $options) {
+    parent::init($view, $options);
+    $this->additional_fields['uid'] = array('table' => 'pm_index', 'field' => 'uid');
+  }
+  
   function option_definition() {
     $options = parent::option_definition();
     $options['count_filter'] = array('default' => 'not_deleted');    
@@ -19,15 +24,15 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $options = array(
-      'not_deleted' => t('Not deleted by current user'),      
-      'read' => t('Read and not deleted by current user'),
-      'unread' => t('Unread and not deleted by current user '),
-      'deleted' => t('Deleted by current user'),
+      'not_deleted' => t('Not deleted by participant'),      
+      'read' => t('Read and not deleted by participant'),
+      'unread' => t('Unread and not deleted by participant'),
+      'deleted' => t('Deleted by participant'),
       'all' => t('All messages'),
     );
     $form['count_filter'] = array(
       '#title' => t('Count messages filter'),
-      '#description' => t('Please select which messages to count. Atm this works for current user only.'),
+      '#description' => t('Please select which messages to count.'),
       '#type' => 'radios',
       '#options' => $options,
       '#default_value' => $this->options['count_filter'],
@@ -39,8 +44,6 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
    * available.
    */
   function pre_render($values) {
-    global $user;
-    
     // Prepare thread list for IN list.
     $threads = array();
     foreach ($values as $value) {
@@ -48,13 +51,12 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
         $threads[] = $value->{$this->field_alias};
       }
     }
-    
-    $query  = "SELECT pmi.thread_id, COUNT(m.mid) AS msg_count FROM {pm_message} m INNER JOIN {pm_index} pmi ON m.mid = pmi.mid";
-    $query .= " WHERE pmi.uid = %d";
-    switch ($this->options['include_deleted']) {
+    $query  = "SELECT pmi.thread_id, pmi.uid, COUNT(pmi.mid) AS msg_count FROM {pm_index} pmi";
+    $query .= " WHERE pmi.thread_id IN (" . db_placeholders($threads) . ")";
+    switch ($this->options['count_filter']) {
       case 'not_deleted':
         $query .= " AND pmi.deleted = 0";
-        break;
+        break;      
       case 'read':
         $query .= " AND pmi.is_new = 0 AND pmi.deleted = 0";
         break;
@@ -64,16 +66,24 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
       case 'deleted':
         $query .= " AND pmi.deleted > 0";
         break;
+      case 'all':
+        // no filtering
     }
-    $query .= " AND pmi.thread_id IN (" . db_placeholders($threads) . ")";
     $query .= " GROUP BY pmi.thread_id, pmi.uid";
-       
-    // TODO: Is it possible to link user ID argument here ?
-    array_unshift($threads, $user->uid);
     $result = db_query($query, $threads);
     while ($thread = db_fetch_object($result)) {
-      $this->items[$thread->thread_id][0]['msg_count'] = $thread->msg_count;
+      // Add uid key so every participant gets own msg count.
+      $this->items[$thread->thread_id][$thread->uid][0]['msg_count'] = $thread->msg_count;
     }
+  }
+  
+  function get_items($values) {
+    $uid = $values->{$this->aliases['uid']};
+    $thread_id = $values->{$this->field_alias};
+    if (!empty($this->items[$thread_id][$uid])) {
+      return $this->items[$thread_id][$uid];
+    }
+    return array(0 => array('msg_count' => 0));
   }
   
   function render_item($count, $item) {
