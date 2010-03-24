@@ -1,28 +1,34 @@
 <?php
 // $Id$
 
-/**
- * @file
- * Default views for the privatemsg_views module.
- */
-
-/**
- * Implementation of hook_views_default_views().
- */
-function privatemsg_views_views_default_views() {
-  $view = new view;
-  $view->name = 'privatemsg_example';
-  $view->description = 'Privatemsg mailbox example displaying private message threads';
-  $view->tag = 'privatemsg';
-  $view->view_php = '';
-  $view->base_table = 'pm_message';
-  $view->is_cacheable = FALSE;
-  $view->api_version = 2;
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  $handler = $view->new_display('default', 'User\'s message threads', 'default');
-  $handler->override_option('fields', array(
-  'thread_id' => array(
-    'label' => 'Message thread',
+$view = new view;
+$view->name = 'privatemsg_thread';
+$view->description = 'Private messages in a thread';
+$view->tag = 'privatemsg';
+$view->view_php = '';
+$view->base_table = 'pm_message';
+$view->is_cacheable = FALSE;
+$view->api_version = 2;
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+$handler = $view->new_display('default', 'Private message thread', 'default');
+$handler->override_option('relationships', array(
+  'author' => array(
+    'label' => 'author',
+    'required' => 0,
+    'id' => 'author',
+    'table' => 'pm_message',
+    'field' => 'author',
+    'relationship' => 'none',
+  ),
+  'uid' => array(
+    'id' => 'uid',
+    'table' => 'pm_index',
+    'field' => 'uid',
+  ),
+));
+$handler->override_option('fields', array(
+  'picture' => array(
+    'label' => '',
     'alter' => array(
       'alter_text' => 0,
       'text' => '',
@@ -40,24 +46,19 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
-    'set_precision' => FALSE,
-    'precision' => 0,
-    'decimal' => '.',
-    'separator' => ',',
-    'prefix' => '',
-    'suffix' => '',
-    'exclude' => 1,
-    'id' => 'thread_id',
-    'table' => 'pm_index',
-    'field' => 'thread_id',
-    'relationship' => 'none',
+    'imagecache_preset' => '1',
+    'exclude' => 0,
+    'id' => 'picture',
+    'table' => 'users',
+    'field' => 'picture',
+    'relationship' => 'author',
   ),
-  'participants' => array(
-    'label' => 'Participants',
+  'name' => array(
+    'label' => '',
     'alter' => array(
       'alter_text' => 0,
       'text' => '',
@@ -75,28 +76,24 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
     'link_to_user' => 1,
-    'replace_current' => 1,
+    'overwrite_anonymous' => 0,
+    'anonymous_text' => '',
     'exclude' => 0,
-    'type' => 'separator',
-    'separator' => ', ',
-    'id' => 'participants',
-    'table' => 'pm_index',
-    'field' => 'participants',
-    'relationship' => 'none',
-    'override' => array(
-      'button' => 'Override',
+    'id' => 'name',
+    'table' => 'users',
+    'field' => 'name',
+    'relationship' => 'author',
   ),
-  ),
-  'count_messages' => array(
-    'label' => 'Message count',
+  'timestamp' => array(
+    'label' => '',
     'alter' => array(
-      'alter_text' => 1,
-      'text' => '  ([count_messages])',
+      'alter_text' => 0,
+      'text' => '',
       'make_link' => 0,
       'path' => '',
       'link_class' => '',
@@ -111,17 +108,16 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
-    'type' => 'separator',
-    'separator' => ', ',
-    'count_filter' => 'not_deleted',
+    'date_format' => 'small',
+    'custom_date_format' => '',
     'exclude' => 0,
-    'id' => 'count_messages',
-    'table' => 'pm_index',
-    'field' => 'count_messages',
+    'id' => 'timestamp',
+    'table' => 'pm_message',
+    'field' => 'timestamp',
     'relationship' => 'none',
   ),
   'body' => array(
@@ -137,90 +133,27 @@ function privatemsg_views_views_default_views() {
       'suffix' => '',
       'target' => '',
       'help' => '',
-      'trim' => 1,
+      'trim' => 0,
       'max_length' => '50',
       'word_boundary' => 1,
       'ellipsis' => 1,
       'strip_tags' => 1,
       'html' => 1,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
-    'exclude' => 1,
+    'exclude' => 0,
     'id' => 'body',
     'table' => 'pm_message',
     'field' => 'body',
     'relationship' => 'none',
     'override' => array(
       'button' => 'Override',
+    ),
   ),
-  ),
-  'subject' => array(
-    'label' => 'Thread',
-    'alter' => array(
-      'alter_text' => 1,
-      'text' => '<strong><span class=\\\'pm-subject\\\'>[subject]</span></strong> <em><span class=\\\'pm-msg-teaser\\\'>[body]</span></em> ',
-      'make_link' => 1,
-      'path' => 'messages/view/[thread_id]',
-      'link_class' => 'privatemsg-thread-link',
-      'alt' => '',
-      'prefix' => '',
-      'suffix' => '',
-      'target' => '',
-      'help' => '',
-      'trim' => 0,
-      'max_length' => '',
-      'word_boundary' => 1,
-      'ellipsis' => 1,
-      'strip_tags' => 0,
-      'html' => 0,
-  ),
-    'empty' => '',
-    'hide_empty' => 0,
-    'empty_zero' => 0,
-    'exclude' => 0,
-    'link_to_msg' => 1,
-    'id' => 'subject',
-    'table' => 'pm_message',
-    'field' => 'subject',
-    'relationship' => 'none',
-  ),
-  'is_new' => array(
+  'deleted' => array(
     'label' => '',
-    'alter' => array(
-      'alter_text' => 1,
-      'text' => '<span class="marker">[is_new]</span>',
-      'make_link' => 0,
-      'path' => '',
-      'link_class' => '',
-      'alt' => '',
-      'prefix' => '',
-      'suffix' => '',
-      'target' => '',
-      'help' => '',
-      'trim' => 0,
-      'max_length' => '',
-      'word_boundary' => 1,
-      'ellipsis' => 1,
-      'strip_tags' => 0,
-      'html' => 0,
-  ),
-    'empty' => '',
-    'hide_empty' => 1,
-    'empty_zero' => 0,
-    'type' => 'new-empty',
-    'not' => 0,
-    'exclude' => 0,
-    'output_new' => 'Yes',
-    'output_old' => 'No',
-    'id' => 'is_new',
-    'table' => 'pm_index',
-    'field' => 'is_new',
-    'relationship' => 'none',
-  ),
-  'timestamp' => array(
-    'label' => 'Updated',
     'alter' => array(
       'alter_text' => 0,
       'text' => '',
@@ -238,43 +171,174 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
     'date_format' => 'small',
     'custom_date_format' => '',
     'exclude' => 0,
-    'id' => 'timestamp',
-    'table' => 'pm_message',
-    'field' => 'timestamp',
+    'set_precision' => FALSE,
+    'precision' => 0,
+    'decimal' => '.',
+    'separator' => ',',
+    'prefix' => '',
+    'suffix' => '',
+    'id' => 'deleted',
+    'table' => 'pm_index',
+    'field' => 'deleted',
     'relationship' => 'none',
   ),
-  ));
-  $handler->override_option('arguments', array(
+  'is_new' => array(
+    'label' => '',
+    'alter' => array(
+      'alter_text' => 0,
+      'text' => '<a class="marker" id="new">[is_new]</a>',
+      'make_link' => 0,
+      'path' => '',
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 0,
+      'max_length' => '',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'strip_tags' => 0,
+      'html' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 0,
+    'empty_zero' => 0,
+    'type' => 'raw',
+    'not' => 0,
+    'exclude' => 0,
+    'id' => 'is_new',
+    'table' => 'pm_index',
+    'field' => 'is_new',
+    'relationship' => 'none',
+  ),
   'uid' => array(
-    'default_action' => 'default',
+    'label' => '',
+    'alter' => array(
+      'alter_text' => 0,
+      'text' => '',
+      'make_link' => 0,
+      'path' => '',
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 0,
+      'max_length' => '',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'strip_tags' => 0,
+      'html' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 0,
+    'empty_zero' => 0,
+    'link_to_user' => 0,
+    'exclude' => 0,
+    'id' => 'uid',
+    'table' => 'users',
+    'field' => 'uid',
+    'relationship' => 'uid',
+  ),
+  'mid' => array(
+    'label' => '',
+    'alter' => array(
+      'alter_text' => 0,
+      'text' => '',
+      'make_link' => 0,
+      'path' => '',
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 0,
+      'max_length' => '',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'strip_tags' => 0,
+      'html' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 0,
+    'empty_zero' => 0,
+    'set_precision' => FALSE,
+    'precision' => 0,
+    'decimal' => '.',
+    'separator' => ',',
+    'prefix' => '',
+    'suffix' => '',
+    'exclude' => 0,
+    'id' => 'mid',
+    'table' => 'pm_message',
+    'field' => 'mid',
+    'relationship' => 'none',
+  ),
+  'message_actions' => array(
+    'label' => '',
+    'alter' => array(
+      'alter_text' => 0,
+      'text' => '',
+      'make_link' => 0,
+      'path' => '',
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 0,
+      'max_length' => '',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'strip_tags' => 0,
+      'html' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 0,
+    'empty_zero' => 0,
+    'exclude' => 0,
+    'id' => 'message_actions',
+    'table' => 'pm_message',
+    'field' => 'message_actions',
+    'relationship' => 'none',
+  ),
+));
+$handler->override_option('arguments', array(
+  'thread_id' => array(
+    'default_action' => 'not found',
     'style_plugin' => 'default_summary',
     'style_options' => array(),
-    'wildcard' => 'all',
-    'wildcard_substitution' => 'All',
+    'wildcard' => '',
+    'wildcard_substitution' => '',
     'title' => '',
     'breadcrumb' => '',
-    'default_argument_type' => 'user',
+    'default_argument_type' => 'fixed',
     'default_argument' => '',
-    'validate_type' => 'user',
-    'validate_fail' => 'ignore',
+    'validate_type' => 'numeric',
+    'validate_fail' => 'not found',
     'break_phrase' => 0,
     'not' => 0,
-    'id' => 'uid',
+    'id' => 'thread_id',
     'table' => 'pm_index',
-    'field' => 'uid',
+    'field' => 'thread_id',
     'validate_user_argument_type' => 'uid',
     'validate_user_roles' => array(
       '2' => 0,
       '3' => 0,
       '4' => 0,
-  ),
+    ),
     'relationship' => 'none',
     'default_options_div_prefix' => '',
     'default_argument_user' => 0,
@@ -291,7 +355,7 @@ function privatemsg_views_views_default_views() {
       'profile' => 0,
       'site_group' => 0,
       'specialist' => 0,
-  ),
+    ),
     'validate_argument_node_access' => 0,
     'validate_argument_nid_type' => 'nid',
     'validate_argument_vocabulary' => array(
@@ -308,7 +372,7 @@ function privatemsg_views_views_default_views() {
       '17' => 0,
       '16' => 0,
       '15' => 0,
-  ),
+    ),
     'validate_argument_type' => 'tid',
     'validate_argument_transform' => 0,
     'validate_user_restrict_roles' => 0,
@@ -321,71 +385,52 @@ function privatemsg_views_views_default_views() {
     'validate_argument_is_member' => 'OG_VIEWS_DO_NOT_VALIDATE_MEMBERSHIP',
     'validate_argument_group_node_type' => array(
       'site_group' => 0,
-  ),
+    ),
     'validate_argument_php' => '',
-    'override' => array(
-      'button' => 'Override',
   ),
+));
+$handler->override_option('filters', array(
+  'deleted' => array(
+    'operator' => '=',
+    'value' => '0',
+    'group' => '0',
+    'exposed' => FALSE,
+    'expose' => array(
+      'operator' => FALSE,
+      'label' => '',
+    ),
+    'id' => 'deleted',
+    'table' => 'pm_index',
+    'field' => 'deleted',
+    'relationship' => 'none',
   ),
-  ));
-  $handler->override_option('filters', array(
-  'thread_id' => array(
-    'id' => 'thread_id',
-    'table' => 'pmi3',
-    'field' => 'thread_id',
+  'uid' => array(
+    'operator' => '=',
+    'value' => '1',
+    'group' => '0',
+    'exposed' => TRUE,
+    'expose' => array(
+      'operator' => '',
+      'identifier' => 'uid',
+      'label' => 'View the thread on behalf of',
+      'optional' => 0,
+      'remember' => 0,
+    ),
+    'id' => 'uid',
+    'table' => 'pm_index',
+    'field' => 'uid',
+    'relationship' => 'none',
   ),
-  ));
-  $handler->override_option('access', array(
+));
+$handler->override_option('access', array(
   'type' => 'none',
-  ));
-  $handler->override_option('cache', array(
+));
+$handler->override_option('cache', array(
   'type' => 'none',
-  ));
-  $handler->override_option('style_plugin', 'table');
-  $handler->override_option('style_options', array(
+));
+$handler->override_option('use_ajax', TRUE);
+$handler->override_option('use_pager', '1');
+$handler->override_option('distinct', 0);
+$handler->override_option('style_options', array(
   'grouping' => '',
-  'override' => 1,
-  'sticky' => 1,
-  'order' => 'desc',
-  'columns' => array(
-    'thread_id' => 'thread_id',
-    'participants' => 'participants',
-    'count_messages' => 'participants',
-    'body' => 'body',
-    'subject' => 'subject',
-    'is_new' => 'subject',
-    'timestamp' => 'timestamp',
-  ),
-  'info' => array(
-    'thread_id' => array(
-      'sortable' => 0,
-      'separator' => '',
-  ),
-    'participants' => array(
-      'separator' => '',
-  ),
-    'count_messages' => array(
-      'separator' => '',
-  ),
-    'body' => array(
-      'separator' => '',
-  ),
-    'subject' => array(
-      'sortable' => 0,
-      'separator' => '',
-  ),
-    'is_new' => array(
-      'sortable' => 0,
-      'separator' => '',
-  ),
-    'timestamp' => array(
-      'sortable' => 1,
-      'separator' => '',
-  ),
-  ),
-  'default' => 'timestamp',
-  ));
-
-  $views[$view->name] = $view;
-  return $views;
-}
+));

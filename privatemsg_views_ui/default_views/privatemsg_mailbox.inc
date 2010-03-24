@@ -1,28 +1,19 @@
 <?php
 // $Id$
 
-/**
- * @file
- * Default views for the privatemsg_views module.
- */
-
-/**
- * Implementation of hook_views_default_views().
- */
-function privatemsg_views_views_default_views() {
-  $view = new view;
-  $view->name = 'privatemsg_example';
-  $view->description = 'Privatemsg mailbox example displaying private message threads';
-  $view->tag = 'privatemsg';
-  $view->view_php = '';
-  $view->base_table = 'pm_message';
-  $view->is_cacheable = FALSE;
-  $view->api_version = 2;
-  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
-  $handler = $view->new_display('default', 'User\'s message threads', 'default');
-  $handler->override_option('fields', array(
+$view = new view;
+$view->name = 'privatemsg_mailbox';
+$view->description = 'Private message mailbox';
+$view->tag = 'privatemsg';
+$view->view_php = '';
+$view->base_table = 'pm_message';
+$view->is_cacheable = FALSE;
+$view->api_version = 2;
+$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+$handler = $view->new_display('default', 'Private message mailbox', 'default');
+$handler->override_option('fields', array(
   'thread_id' => array(
-    'label' => 'Message thread',
+    'label' => '',
     'alter' => array(
       'alter_text' => 0,
       'text' => '',
@@ -40,7 +31,7 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
@@ -54,6 +45,35 @@ function privatemsg_views_views_default_views() {
     'id' => 'thread_id',
     'table' => 'pm_index',
     'field' => 'thread_id',
+    'relationship' => 'none',
+  ),
+  'unread_pagenum' => array(
+    'label' => '',
+    'alter' => array(
+      'alter_text' => 1,
+      'text' => '?page=[unread_pagenum]',
+      'make_link' => 0,
+      'path' => '',
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 0,
+      'max_length' => '',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'strip_tags' => 0,
+      'html' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 1,
+    'empty_zero' => 1,
+    'exclude' => 1,
+    'id' => 'unread_pagenum',
+    'table' => 'pm_message',
+    'field' => 'unread_pagenum',
     'relationship' => 'none',
   ),
   'participants' => array(
@@ -75,7 +95,7 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
@@ -90,39 +110,7 @@ function privatemsg_views_views_default_views() {
     'relationship' => 'none',
     'override' => array(
       'button' => 'Override',
-  ),
-  ),
-  'count_messages' => array(
-    'label' => 'Message count',
-    'alter' => array(
-      'alter_text' => 1,
-      'text' => '  ([count_messages])',
-      'make_link' => 0,
-      'path' => '',
-      'link_class' => '',
-      'alt' => '',
-      'prefix' => '',
-      'suffix' => '',
-      'target' => '',
-      'help' => '',
-      'trim' => 0,
-      'max_length' => '',
-      'word_boundary' => 1,
-      'ellipsis' => 1,
-      'strip_tags' => 0,
-      'html' => 0,
-  ),
-    'empty' => '',
-    'hide_empty' => 0,
-    'empty_zero' => 0,
-    'type' => 'separator',
-    'separator' => ', ',
-    'count_filter' => 'not_deleted',
-    'exclude' => 0,
-    'id' => 'count_messages',
-    'table' => 'pm_index',
-    'field' => 'count_messages',
-    'relationship' => 'none',
+    ),
   ),
   'body' => array(
     'label' => '',
@@ -143,7 +131,7 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 1,
       'html' => 1,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
@@ -154,14 +142,14 @@ function privatemsg_views_views_default_views() {
     'relationship' => 'none',
     'override' => array(
       'button' => 'Override',
-  ),
+    ),
   ),
   'subject' => array(
-    'label' => 'Thread',
+    'label' => '',
     'alter' => array(
-      'alter_text' => 1,
-      'text' => '<strong><span class=\\\'pm-subject\\\'>[subject]</span></strong> <em><span class=\\\'pm-msg-teaser\\\'>[body]</span></em> ',
-      'make_link' => 1,
+      'alter_text' => 0,
+      'text' => '',
+      'make_link' => 0,
       'path' => 'messages/view/[thread_id]',
       'link_class' => 'privatemsg-thread-link',
       'alt' => '',
@@ -175,25 +163,29 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
-    'exclude' => 0,
+    'exclude' => 1,
     'link_to_msg' => 1,
     'id' => 'subject',
     'table' => 'pm_message',
     'field' => 'subject',
     'relationship' => 'none',
   ),
-  'is_new' => array(
-    'label' => '',
+  'count_messages' => array(
+    'label' => 'Thread',
     'alter' => array(
       'alter_text' => 1,
-      'text' => '<span class="marker">[is_new]</span>',
+      'text' => '<a href="/messages/view/[thread_id][unread_pagenum][count_messages-new-empty]" class="privatemsg-thread-link privatemsg-count-new-[count_messages-raw]">
+<span class="privatemsg-subject">[subject]</span> - 
+<span class="privatemsg-teaser">[body]</span></em>
+</a>
+<span class="marker privatemsg-thread-marker">[count_messages-string]</span>',
       'make_link' => 0,
-      'path' => '',
-      'link_class' => '',
+      'path' => 'messages/view/[thread_id][unread_pagenum][count_messages-new-empty]',
+      'link_class' => 'privatemsg-thread-link',
       'alt' => '',
       'prefix' => '',
       'suffix' => '',
@@ -205,18 +197,17 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
-    'hide_empty' => 1,
+    'hide_empty' => 0,
     'empty_zero' => 0,
-    'type' => 'new-empty',
-    'not' => 0,
+    'type' => 'separator',
+    'separator' => ', ',
+    'count_filter' => 'unread',
     'exclude' => 0,
-    'output_new' => 'Yes',
-    'output_old' => 'No',
-    'id' => 'is_new',
+    'id' => 'count_messages',
     'table' => 'pm_index',
-    'field' => 'is_new',
+    'field' => 'count_messages',
     'relationship' => 'none',
   ),
   'timestamp' => array(
@@ -238,7 +229,7 @@ function privatemsg_views_views_default_views() {
       'ellipsis' => 1,
       'strip_tags' => 0,
       'html' => 0,
-  ),
+    ),
     'empty' => '',
     'hide_empty' => 0,
     'empty_zero' => 0,
@@ -250,20 +241,20 @@ function privatemsg_views_views_default_views() {
     'field' => 'timestamp',
     'relationship' => 'none',
   ),
-  ));
-  $handler->override_option('arguments', array(
+));
+$handler->override_option('arguments', array(
   'uid' => array(
     'default_action' => 'default',
     'style_plugin' => 'default_summary',
     'style_options' => array(),
-    'wildcard' => 'all',
-    'wildcard_substitution' => 'All',
+    'wildcard' => '',
+    'wildcard_substitution' => '',
     'title' => '',
     'breadcrumb' => '',
-    'default_argument_type' => 'user',
+    'default_argument_type' => 'current_user',
     'default_argument' => '',
     'validate_type' => 'user',
-    'validate_fail' => 'ignore',
+    'validate_fail' => 'not found',
     'break_phrase' => 0,
     'not' => 0,
     'id' => 'uid',
@@ -274,7 +265,7 @@ function privatemsg_views_views_default_views() {
       '2' => 0,
       '3' => 0,
       '4' => 0,
-  ),
+    ),
     'relationship' => 'none',
     'default_options_div_prefix' => '',
     'default_argument_user' => 0,
@@ -291,7 +282,7 @@ function privatemsg_views_views_default_views() {
       'profile' => 0,
       'site_group' => 0,
       'specialist' => 0,
-  ),
+    ),
     'validate_argument_node_access' => 0,
     'validate_argument_nid_type' => 'nid',
     'validate_argument_vocabulary' => array(
@@ -308,7 +299,7 @@ function privatemsg_views_views_default_views() {
       '17' => 0,
       '16' => 0,
       '15' => 0,
-  ),
+    ),
     'validate_argument_type' => 'tid',
     'validate_argument_transform' => 0,
     'validate_user_restrict_roles' => 0,
@@ -321,71 +312,88 @@ function privatemsg_views_views_default_views() {
     'validate_argument_is_member' => 'OG_VIEWS_DO_NOT_VALIDATE_MEMBERSHIP',
     'validate_argument_group_node_type' => array(
       'site_group' => 0,
-  ),
+    ),
     'validate_argument_php' => '',
     'override' => array(
       'button' => 'Override',
+    ),
   ),
-  ),
-  ));
-  $handler->override_option('filters', array(
+));
+$handler->override_option('filters', array(
   'thread_id' => array(
     'id' => 'thread_id',
     'table' => 'pmi3',
     'field' => 'thread_id',
   ),
-  ));
-  $handler->override_option('access', array(
+));
+$handler->override_option('access', array(
   'type' => 'none',
-  ));
-  $handler->override_option('cache', array(
+));
+$handler->override_option('cache', array(
   'type' => 'none',
-  ));
-  $handler->override_option('style_plugin', 'table');
-  $handler->override_option('style_options', array(
+));
+$handler->override_option('style_plugin', 'bulk');
+$handler->override_option('style_options', array(
   'grouping' => '',
   'override' => 1,
   'sticky' => 1,
   'order' => 'desc',
   'columns' => array(
     'thread_id' => 'thread_id',
+    'unread_pagenum' => 'unread_pagenum',
+    'count_messages_1' => 'count_messages_1',
     'participants' => 'participants',
-    'count_messages' => 'participants',
+    'count_messages' => 'count_messages',
     'body' => 'body',
     'subject' => 'subject',
-    'is_new' => 'subject',
     'timestamp' => 'timestamp',
   ),
   'info' => array(
     'thread_id' => array(
       'sortable' => 0,
       'separator' => '',
-  ),
+    ),
+    'unread_pagenum' => array(
+      'separator' => '',
+    ),
+    'count_messages_1' => array(
+      'separator' => '',
+    ),
     'participants' => array(
       'separator' => '',
-  ),
+    ),
     'count_messages' => array(
       'separator' => '',
-  ),
+    ),
     'body' => array(
       'separator' => '',
-  ),
+    ),
     'subject' => array(
       'sortable' => 0,
       'separator' => '',
-  ),
-    'is_new' => array(
-      'sortable' => 0,
-      'separator' => '',
-  ),
+    ),
     'timestamp' => array(
       'sortable' => 1,
       'separator' => '',
-  ),
+    ),
   ),
   'default' => 'timestamp',
-  ));
-
-  $views[$view->name] = $view;
-  return $views;
-}
+  'execution_type' => '1',
+  'display_type' => '0',
+  'hide_select_all' => 0,
+  'skip_confirmation' => 0,
+  'display_result' => 0,
+  'merge_single_action' => 1,
+  'selected_operations' => array(
+    '_privatemsg_views_thread_operation:3bc9b54d6893066d4e0927989012af13' => '_privatemsg_views_thread_operation:3bc9b54d6893066d4e0927989012af13',
+    '_privatemsg_views_thread_operation:32c93c12b40d7cae34a9637ab0fedad4' => '_privatemsg_views_thread_operation:32c93c12b40d7cae34a9637ab0fedad4',
+    'system_message_action' => 0,
+    'token_actions_message_action' => 0,
+    'views_bulk_operations_script_action' => 0,
+    'views_bulk_operations_argument_selector_action' => 0,
+    'token_actions_goto_action' => 0,
+    'system_goto_action' => 0,
+    'system_send_email_action' => 0,
+    'token_actions_send_email_action' => 0,
+  ),
+));
