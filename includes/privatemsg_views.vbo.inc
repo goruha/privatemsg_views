@@ -3,11 +3,8 @@
 
 /**
  * @file
- * Views Bulk Operations integration for the Privatemsg_views module.
+ * Views Bulk Operations integration for the Privatemsg Views module.
  */
-
-//--------------------------------------------------------
-// VBO stuff 
 
 /**
  * Implementation of hook_views_bulk_operations_object_info()
@@ -24,15 +21,6 @@
  */
 function privatemsg_views_views_bulk_operations_object_info() {
   return array(
-    /*
-    'pm_message' => array(
-      'type' => 'privatemsg_message',
-      'base_table' => 'pm_message',
-      'load' => '_privatemsg_views_msg_load',
-      'title' => 'title',
-      'access' => 'node_access',
-    ),
-    */
     'pm_thread' => array(
       'type' => 'pm_thread',
       'base_table' => 'pm_message',
@@ -50,15 +38,6 @@ function _privatemsg_views_thread_load($mid) {
     return $thread; 
   }
   return FALSE;
-}
-
-function _privatemsg_views_thread_access($op, $thread, $account = NULL) {
-  if (!$account) {
-    $account = $GLOBALS['user'];
-  }
-  switch ($op) {
-    case '':
-  }
 }
 
 /**
@@ -89,6 +68,16 @@ function privatemsg_views_pm_thread_operations() {
       'callback' => '_privatemsg_views_thread_operation',
       'callback arguments' => array('callback' => 'privatemsg_thread_change_status', 'status' => PRIVATEMSG_UNREAD),
     ),
+    'delete' => array(
+      'label' => t('Delete'),
+      'callback' => '_privatemsg_views_thread_operation',
+      'callback arguments' => array('callback' => 'privatemsg_thread_change_delete', 'status' => 1),
+    ),
+    'undelete' => array(
+      'label' => t('Undelete'),
+      'callback' => '_privatemsg_views_thread_operation',
+      'callback arguments' => array('callback' => 'privatemsg_thread_change_delete', 'status' => 0),
+    ),
   );
   return $operations;
 }
@@ -111,7 +100,3 @@ function _privatemsg_views_thread_operation($mids, $callback, $status) {
   $args = array($tids, $status);
   return call_user_func_array($callback, $args);
 }
-
-
-//--------------------------------------------------------
-// Actions 

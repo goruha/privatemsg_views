@@ -325,6 +325,20 @@ $handler->override_option('filters', array(
     'table' => 'pmi3',
     'field' => 'thread_id',
   ),
+  'deleted' => array(
+    'operator' => '=',
+    'value' => '0',
+    'group' => '0',
+    'exposed' => FALSE,
+    'expose' => array(
+      'operator' => FALSE,
+      'label' => '',
+    ),
+    'id' => 'deleted',
+    'table' => 'pm_index',
+    'field' => 'deleted',
+    'relationship' => 'none',
+  ),
 ));
 $handler->override_option('access', array(
   'type' => 'none',
@@ -341,11 +355,10 @@ $handler->override_option('style_options', array(
   'columns' => array(
     'thread_id' => 'thread_id',
     'unread_pagenum' => 'unread_pagenum',
-    'count_messages_1' => 'count_messages_1',
     'participants' => 'participants',
-    'count_messages' => 'count_messages',
     'body' => 'body',
     'subject' => 'subject',
+    'count_messages' => 'count_messages',
     'timestamp' => 'timestamp',
   ),
   'info' => array(
@@ -356,13 +369,7 @@ $handler->override_option('style_options', array(
     'unread_pagenum' => array(
       'separator' => '',
     ),
-    'count_messages_1' => array(
-      'separator' => '',
-    ),
     'participants' => array(
-      'separator' => '',
-    ),
-    'count_messages' => array(
       'separator' => '',
     ),
     'body' => array(
@@ -370,6 +377,9 @@ $handler->override_option('style_options', array(
     ),
     'subject' => array(
       'sortable' => 0,
+      'separator' => '',
+    ),
+    'count_messages' => array(
       'separator' => '',
     ),
     'timestamp' => array(
@@ -385,6 +395,7 @@ $handler->override_option('style_options', array(
   'display_result' => 0,
   'merge_single_action' => 1,
   'selected_operations' => array(
+    '_privatemsg_views_thread_operation:950ba74fb17b2af2cbee2ebc7214471a' => '_privatemsg_views_thread_operation:950ba74fb17b2af2cbee2ebc7214471a',
     '_privatemsg_views_thread_operation:3bc9b54d6893066d4e0927989012af13' => '_privatemsg_views_thread_operation:3bc9b54d6893066d4e0927989012af13',
     '_privatemsg_views_thread_operation:32c93c12b40d7cae34a9637ab0fedad4' => '_privatemsg_views_thread_operation:32c93c12b40d7cae34a9637ab0fedad4',
     'system_message_action' => 0,
@@ -395,5 +406,6 @@ $handler->override_option('style_options', array(
     'system_goto_action' => 0,
     'system_send_email_action' => 0,
     'token_actions_send_email_action' => 0,
+    '_privatemsg_views_thread_operation:e7990a13417f53aa937b62745e2fbbd8' => 0,
   ),
 ));

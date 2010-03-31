@@ -71,6 +71,23 @@ function privatemsg_views_ui_menu_alter(&$items) {
 }
 
 /**
+ * Implementation of hook_form_formid_alter().
+ */
+function privatemsg_views_ui_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'views_bulk_operations_form__1' &&
+      $form['plugin']['#value']->view->name == variable_get('privatemsg_views_ui_mailbox_view', 'privatemsg_mailbox')) {
+    $step = $form['step']['#value'];
+    switch ($step) {
+      case VIEWS_BULK_OPS_STEP_VIEW:
+        $form['select']['#title'] = t('Actions');
+      case VIEWS_BULK_OPS_STEP_SINGLE:
+        $form['objects']['#weight'] = -10;
+        uasort($form, 'element_sort');
+    }
+  }
+}
+
+/**
  * Embeds provided view with overriden path. We need this until 
  * http://drupal.org/node/156130 is fixed.
  * Copied from views_embed_view().
