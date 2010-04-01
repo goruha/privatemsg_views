@@ -21,7 +21,10 @@ function template_preprocess_privatemsg_views_ui_thread(&$variables) {
   $thread = $variables['thread'];
   $thread_id = $thread['thread_id'];
   
-  // Add header.
+  // Add subject.
+  $variables['subject'] = check_plain($thread['subject']);
+  
+  // Add participants.
   // Use our $participants and not $thread['participants'] because we order
   // participants differently.
   $participants = privatemsg_views_get_participants($thread_id);

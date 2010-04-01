@@ -251,11 +251,24 @@ function privatemsg_views_views_data_alter(&$data) {
       'left_table' => 'pm_index',
       'left_field' => 'uid',
       'field' => 'uid',
-      'extra' => 'pm_index.thread_id = pmi2.thread_id AND pm_index.mid > pmi2.mid',
+      //'extra' => 'pm_index.thread_id = pmi2.thread_id AND pm_index.mid > pmi2.mid',
+      'handler' => 'views_multiple_field_join',
+      'extra' => array(
+        'thread_id' => array(
+          'table' => 'pm_index',
+          'field' => 'thread_id',
+          'operator' => '=',
+        ),
+        'mid' => array(
+          'table' => 'pm_index',
+          'field' => 'mid',
+          'operator' => '>',
+        ),
+      ),
     ),
   );
   $data['pmi2']['thread_id'] = array(
-    'title' => t('first message in a thread'),
+    'title' => t('First message in a thread'),
     'help' => t('Turns private message list into list of first messages.'),
     'filter' => array(
       'handler' => 'privatemsg_views_handler_filter_is_null',
@@ -270,17 +283,66 @@ function privatemsg_views_views_data_alter(&$data) {
       'left_table' => 'pm_index',
       'left_field' => 'uid',
       'field' => 'uid',
-      'extra' => 'pm_index.thread_id = pmi3.thread_id AND pm_index.mid < pmi3.mid',
+      //'extra' => 'pm_index.thread_id = pmi3.thread_id AND pm_index.mid < pmi3.mid',
+      'handler' => 'views_multiple_field_join',
+      'extra' => array(
+        'thread_id' => array(
+          'table' => 'pm_index',
+          'field' => 'thread_id',
+          'operator' => '=',
+        ),
+        'mid' => array(
+          'table' => 'pm_index',
+          'field' => 'mid',
+          'operator' => '<',
+        ),
+      ),
     ),
   );
   $data['pmi3']['thread_id'] = array(
-    'title' => t('last message in a thread'),
+    'title' => t('Last message in a thread'),
     'help' => t('Turns private message list into list of last messages.'),
     'filter' => array(
       'handler' => 'privatemsg_views_handler_filter_is_null',
     ),
   );
   
+  // pm_block_user module
+  if (module_exists('pm_block_user')) {
+    $data['pm_block_user']['table']['group']  = t('Privatemsg');
+    $data['pm_block_user']['table']['join'] = array(
+      'pm_message' => array(
+        'left_table' => 'pm_index',
+        'left_field' => 'uid',
+        'field' => 'recipient',
+        'handler' => 'views_multiple_field_join',
+        'extra' => array(
+          'author' => array(
+            'table' => 'pm_message',
+            'field' => 'author',
+            'operator' => '=',
+          ),
+        ),
+      ),
+    );
+    $data['pm_block_user']['is_blocked'] = array(
+      'title' => t('Blocked'),
+      'help' => t('Whether the message is blocked by recipient.'),
+      'real field' => 'recipient',
+      'filter' => array(
+        'handler' => 'views_handler_filter_boolean_operator',
+        'type' => 'yes-no',
+        'label' => t('Blocked'),
+        // Workaround for a Views bug until http://drupal.org/node/508124#comment-2554662
+        // gets into an official release.
+        'accept null' => TRUE,
+        'accept_null' => TRUE,
+      ),
+      'field' => array(
+        'handler' => 'privatemsg_views_handler_field_is_blocked',
+      ),
+    );    
+  }
 }
 
 /**
@@ -298,6 +360,9 @@ function privatemsg_views_views_handlers() {
       'privatemsg_views_handler_field_is_new' => array(
         'parent' => 'views_handler_field',
       ),
+      'privatemsg_views_handler_field_is_blocked' => array(
+        'parent' => 'views_handler_field',
+      ),
       'privatemsg_views_handler_field_message_actions' => array(
         'parent' => 'views_handler_field',
       ),
@@ -313,9 +378,10 @@ function privatemsg_views_views_handlers() {
       'privatemsg_views_handler_filter_is_null' => array(
         'parent' => 'views_handler_filter',
       ),
-      
     ),
   );
 }
 
-
+// Manually include custom join handler cause it's not included by Views unlike 
+// normal handlers.
+module_load_include('inc', 'privatemsg_views', 'handlers/views_multiple_field_join');

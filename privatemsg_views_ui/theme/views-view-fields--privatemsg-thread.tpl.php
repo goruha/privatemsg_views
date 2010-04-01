@@ -44,7 +44,7 @@
       <a class="marker" id="<?php print $new_anchor ?>"><?php print t('new'); ?></a>
     </span>
   <?php endif;?>
-  
+    
   <div class="views-field-<?php print $fields['body']->class; ?>">
     <?php print $fields['body']->content; ?>
   </div>
