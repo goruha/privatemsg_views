@@ -17,30 +17,47 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
     $options['count_filter'] = array('default' => 'not_deleted');    
     return $options;
   }
-
-  function filtering_options() {
-    $options = array(
-      'not_deleted' => t('Not deleted messages'),      
-      'read' => t('Read and not deleted messages'),
-      'unread' => t('Unread and not deleted messages'),
-      'deleted' => t('Deleted messages'),
-      'all' => t('All messages'),
-    );
-    return $options;
-  }
   
   /**
    * Provide "link to profile" option.
    */
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
-    $form['count_filter'] = array(
-      '#title' => t('Count'),
-      '#description' => t('Please select which messages to count.'),
-      '#type' => 'radios',
-      '#options' => $this->filtering_options(),
-      '#default_value' => $this->options['count_filter'],
+    $options = array(
+      0 => t("don't care"),
+      1 => t('yes'),
+      2 => t('no'),
     );
+    $form['count_messages_fieldset'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Count messages'),
+    );
+    $form['count_deleted'] = array(
+      '#title' => t('Deleted'),
+      '#prefix' => t('Please select which messages to count.'),
+      '#description' => t('Count deleted messages ?'),
+      '#type' => 'select',
+      '#options' => $options,
+      '#default_value' => $this->options['count_deleted'],
+    );
+    $form['count_new'] = array(
+      '#title' => t('New'),
+      '#description' => t('Count new (unread) messages ?'),
+      '#type' => 'select',
+      '#options' => $options,
+      '#default_value' => $this->options['count_new'],
+    );
+    if (module_exists('pm_block_user')) {
+      $form['count_blocked'] = array(
+        '#title' => t('Blocked'),
+        '#description' => t('Count blocked messages ?'),
+        '#type' => 'select',
+        '#options' => $options,
+        '#default_value' => $this->options['count_blocked'],
+      );
+    }
+    
+    
   }
   
   /**
@@ -55,26 +72,45 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
         $threads[] = $value->{$this->field_alias};
       }
     }
-    $query  = "SELECT pmi.thread_id, pmi.uid, COUNT(pmi.mid) AS msg_count FROM {pm_index} pmi";
-    $query .= " WHERE pmi.thread_id IN (" . db_placeholders($threads) . ")";
-    switch ($this->options['count_filter']) {
-      case 'not_deleted':
-        $query .= " AND pmi.deleted = 0";
-        break;      
-      case 'read':
-        $query .= " AND pmi.is_new = 0 AND pmi.deleted = 0";
-        break;
-      case 'unread':
-        $query .= " AND pmi.is_new = 1 AND pmi.deleted = 0";
-        break;
-      case 'deleted':
-        $query .= " AND pmi.deleted > 0";
-        break;
-      case 'all':
-        // no filtering
+    $query = array();
+    $query['select'] = array();
+    $query['where'] = array();
+    $query['groupby'] = array();
+    
+    $query['select'][] = "SELECT pmi.thread_id, pmi.uid, COUNT(pmi.mid) AS msg_count FROM {pm_index} pmi";
+     
+    if (module_exists('pm_block_user') && $this->options['count_blocked'] > 0) {
+      $query['select'][] = "LEFT JOIN {pm_message} m ON pmi.mid = m.mid";
+      $query['select'][] = "LEFT JOIN {pm_block_user} pmbu ON pmi.uid = pmbu.recipient AND m.author = pmbu.author";
+      if ($this->options['count_blocked'] == 1) {
+        $query['where'][] = "pmbu.recipient IS NOT NULL";
+      }
+      if ($this->options['count_blocked'] == 2) {
+        $query['where'][] = "pmbu.recipient IS NULL";
+      }
     }
-    $query .= " GROUP BY pmi.thread_id, pmi.uid";
-    $result = db_query($query, $threads);
+    
+    $query['where'][] = "pmi.thread_id IN (" . db_placeholders($threads) . ")";
+    if ($this->options['count_deleted'] == 1) {
+      $query['where'][] = "pmi.deleted > 0";
+    }
+    if ($this->options['count_deleted'] == 2) {
+      $query['where'][] = "pmi.deleted = 0";
+    }
+    if ($this->options['count_new'] == 1) {
+      $query['where'][] = "pmi.is_new = 1";
+    }
+    if ($this->options['count_new'] == 2) {
+      $query['where'][] = "pmi.is_new = 0";
+    }
+    $query['groupby'][] = "pmi.thread_id";
+    $query['groupby'][] = "pmi.uid";
+    
+    $query_string  = implode(' ', $query['select']);
+    $query_string .= ' WHERE (' . implode(') AND (', $query['where']) . ')';
+    $query_string .= ' GROUP BY ' . implode(',', $query['groupby']);
+    
+    $result = db_query($query_string, $threads);
     while ($thread = db_fetch_object($result)) {
       // Add uid key so every participant gets own msg count.
       $this->items[$thread->thread_id][$thread->uid][0]['msg_count'] = $thread->msg_count;
@@ -96,44 +132,24 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
   }
   
   function document_self_tokens(&$tokens) {
-    $options = $this->filtering_options();
     $id = $this->options['id'];
-    $prefix = $options[$this->options['count_filter']];
-
-    $tokens['[' . $id . '-raw' . ']'] = $prefix . ': ' . t('raw number of messages.');
-    $tokens['[' . $id . '-yes-no' . ']'] = $prefix . ': ' . t('"Yes" or "No" depending on if number is > 0 or 0.');
-    $tokens['[' . $id . '-string' . ']'] = $prefix . ': ' . t('number as a string e.g. "5 messages".');
-    
-    switch($this->options['count_filter']) {
-      case 'unread':
-        $tokens['[' . $id . '-new-empty' . ']'] = $prefix . ': ' . t('"#new" or empty string depending on if number is > 0 or 0. Useful for anchor fragments.');
-        $tokens['[' . $id . '-string' . ']'] = $prefix . ': ' . t('number as a string e.g. "5 new messages"');
-        break;
-        
-      case 'deleted':
-        $tokens['[' . $id . '-string' . ']'] = $prefix . ': ' . t('number as a string e.g. "5 deleted messages"');
-        break;
-    }
+    $tokens['[' . $id . '-raw' . ']'] = t('raw number of messages.');
+    $tokens['[' . $id . '-yes-no' . ']'] = t('"Yes" or "No" depending on if number is > 0 or 0.');
+    $tokens['[' . $id . '-string' . ']'] = t('number as a string e.g. "5 messages".');
+    $tokens['[' . $id . '-new-empty' . ']'] = t('"#new" or empty string depending on if number is > 0 or 0. Useful for anchor fragments.');
+    $tokens['[' . $id . '-new-string' . ']'] = t('number of messages as new messages count e.g. "5 new messages"');
+    $tokens['[' . $id . '-deleted-string' . ']'] = t('number of messages as deleted messages count e.g. "5 deleted messages"');
   }
 
   function add_self_tokens(&$tokens, $item) {
     $count = $item['msg_count_raw'];
-    $id = $this->options['id'];
-    
+    $id = $this->options['id'];   
     $tokens['[' . $id . '-raw' . ']'] = $count > 0 ? $count : "0";
     $tokens['[' . $id . '-yes-no' . ']'] = $count > 0 ? t('Yes') : t('No');
     $tokens['[' . $id . '-string' . ']'] = $count > 0 ? format_plural($count, '1 message', '@count messages', array('@count' => $count))  : '';
-    
-    switch($this->options['count_filter']) {
-      case 'unread':
-        $tokens['[' . $id . '-new-empty' . ']'] = $count > 0 ? '#new' : '';
-        $tokens['[' . $id . '-string' . ']'] = $count > 0 ? format_plural($count, '1 new message', '@count new messages', array('@count' => $count)) : ''; 
-        break;
-
-      case 'deleted':
-        $tokens['[' . $id . '-string' . ']'] = $count > 0 ? format_plural($count, '1 deleted message', '@count deleted messages', array('@count' => $count))  : '';
-        break;
-    }
+    $tokens['[' . $id . '-new-empty' . ']'] = $count > 0 ? '#new' : '';
+    $tokens['[' . $id . '-new-string' . ']'] = $count > 0 ? format_plural($count, '1 new message', '@count new messages', array('@count' => $count)) : '';
+    $tokens['[' . $id . '-deleted-string' . ']'] = $count > 0 ? format_plural($count, '1 deleted message', '@count deleted messages', array('@count' => $count))  : '';
   }
   
 }

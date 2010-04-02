@@ -28,6 +28,9 @@ function privatemsg_views_init() {
 /**
  * Return thread participants.
  * 
+ * Participants are ordered by the time of participation. Users
+ * which are recipients (not authors) are placed in the end of the list.
+ * 
  * @param $threads
  *  single thread ID or array of thread IDs.
  * @return unknown_type
@@ -51,20 +54,33 @@ function privatemsg_views_get_participants($threads) {
     }
   }
   if (!empty($select_threads)) {
-    $query  = "SELECT DISTINCT(pmi.uid), u.name, pmi.thread_id FROM {pm_index} pmi INNER JOIN {users} u ON pmi.uid = u.uid LEFT JOIN {pm_message} m ON m.author = pmi.uid";
+    $query  = "SELECT pmi.uid, pmi.thread_id, u.name, m.timestamp IS NULL AS not_author FROM {pm_index} pmi";
+    $query .= " INNER JOIN {users} u ON pmi.uid = u.uid";
+    $query .= " LEFT JOIN {pm_message} m ON pmi.mid = m.mid AND pmi.uid = m.author";
     $query .= " WHERE pmi.thread_id IN (". db_placeholders($select_threads) .")";
-    $query .= " ORDER BY m.timestamp ASC";
+    $query .= " ORDER BY not_author ASC, m.timestamp ASC";
+
     $query_result = db_query($query, $select_threads);
+    // Array to maintain user uniqueness per-thread. 
+    $thread_users = array();
     while ($item = db_fetch_object($query_result)) {
       if (!is_array($result[$item->thread_id])) {
         $result[$item->thread_id] = array();
       }
-      $result[$item->thread_id][] = $cache[$item->thread_id][] = $item;
+      if (!is_array($thread_users[$item->thread_id])) {
+        $thread_users[$item->thread_id] = array();
+      }
+      // Do we have this user already ?
+      if (!in_array($item->uid, $thread_users[$item->thread_id])) {
+        // Adding users in the same order we get them from DB
+        $result[$item->thread_id][] = $cache[$item->thread_id][] = $item;
+        // Add uid to the list of unique thread participants.
+        $thread_users[$item->thread_id][] = $item->uid;
+      }
     }
   }
   return $result;
 }
-
 
 /**
  * Return numbers of pages containing first unread message for every thread in

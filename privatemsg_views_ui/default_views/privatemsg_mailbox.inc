@@ -182,7 +182,7 @@ $handler->override_option('fields', array(
 <span class="privatemsg-subject">[subject]</span> - 
 <span class="privatemsg-teaser">[body]</span></em>
 </a>
-<span class="marker privatemsg-thread-marker">[count_messages-string]</span>',
+<span class="marker privatemsg-thread-marker">[count_messages-new-string]</span>',
       'make_link' => 0,
       'path' => 'messages/view/[thread_id][unread_pagenum][count_messages-new-empty]',
       'link_class' => 'privatemsg-thread-link',
@@ -209,6 +209,14 @@ $handler->override_option('fields', array(
     'table' => 'pm_index',
     'field' => 'count_messages',
     'relationship' => 'none',
+    'count_deleted' => '2',
+    'count_new' => '1',
+    'count_blocked' => '2',
+    'count_messages_fieldset' => array(
+      'count_deleted' => '2',
+      'count_new' => '0',
+      'count_blocked' => '0',
+    ),
   ),
   'timestamp' => array(
     'label' => 'Updated',
