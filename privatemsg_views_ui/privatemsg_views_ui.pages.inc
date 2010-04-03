@@ -48,14 +48,14 @@ function privatemsg_views_ui_settings_form() {
     '#type' => 'select',
     '#title' => t('Privatemsg mailbox view'),
     '#options' => $options,
-    '#description' => t('The view to use when displaying private message mailbox. The view must accept user ID argument.'),
+    '#description' => t('A view to use when displaying private message mailbox. The view must accept user ID argument.'),
     '#default_value' => variable_get('privatemsg_views_ui_mailbox_view', 'privatemsg_mailbox'),
   );
   $form['privatemsg_views_ui_thread_view'] = array(
     '#type' => 'select',
     '#title' => t('Privatemsg thread view'),
     '#options' => $options,
-    '#description' => t('The view to use when displaying private messages thread. The view must accept thread ID argument.'),
+    '#description' => t('A view to use when displaying private messages thread. The view must accept thread ID argument.'),
     '#default_value' => variable_get('privatemsg_views_ui_thread_view', 'privatemsg_thread'),
   );
   

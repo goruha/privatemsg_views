@@ -72,6 +72,10 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
         $threads[] = $value->{$this->field_alias};
       }
     }
+    if (empty($threads)) {
+      return;
+    }
+    
     $query = array();
     $query['select'] = array();
     $query['where'] = array();

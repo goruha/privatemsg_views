@@ -12,6 +12,36 @@ $view->api_version = 2;
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 $handler = $view->new_display('default', 'Private message mailbox', 'default');
 $handler->override_option('fields', array(
+  'thread_msg' => array(
+    'label' => '',
+    'alter' => array(
+      'alter_text' => 0,
+      'text' => '',
+      'make_link' => 0,
+      'path' => '',
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 0,
+      'max_length' => '',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'strip_tags' => 0,
+      'html' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 0,
+    'empty_zero' => 0,
+    'type' => 'max',
+    'exclude' => 1,
+    'id' => 'thread_msg',
+    'table' => 'pm_index',
+    'field' => 'thread_msg',
+    'relationship' => 'none',
+  ),
   'thread_id' => array(
     'label' => '',
     'alter' => array(
@@ -47,6 +77,35 @@ $handler->override_option('fields', array(
     'field' => 'thread_id',
     'relationship' => 'none',
   ),
+  'thread_msg_body' => array(
+    'label' => '',
+    'alter' => array(
+      'alter_text' => 0,
+      'text' => '',
+      'make_link' => 0,
+      'path' => '',
+      'link_class' => '',
+      'alt' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'target' => '',
+      'help' => '',
+      'trim' => 1,
+      'max_length' => '100',
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'strip_tags' => 1,
+      'html' => 0,
+    ),
+    'empty' => '',
+    'hide_empty' => 0,
+    'empty_zero' => 0,
+    'exclude' => 1,
+    'id' => 'thread_msg_body',
+    'table' => 'pm_index',
+    'field' => 'thread_msg_body',
+    'relationship' => 'none',
+  ),
   'unread_pagenum' => array(
     'label' => '',
     'alter' => array(
@@ -72,7 +131,7 @@ $handler->override_option('fields', array(
     'empty_zero' => 1,
     'exclude' => 1,
     'id' => 'unread_pagenum',
-    'table' => 'pm_message',
+    'table' => 'pm_index',
     'field' => 'unread_pagenum',
     'relationship' => 'none',
   ),
@@ -107,38 +166,6 @@ $handler->override_option('fields', array(
     'id' => 'participants',
     'table' => 'pm_index',
     'field' => 'participants',
-    'relationship' => 'none',
-    'override' => array(
-      'button' => 'Override',
-    ),
-  ),
-  'body' => array(
-    'label' => '',
-    'alter' => array(
-      'alter_text' => 0,
-      'text' => '',
-      'make_link' => 0,
-      'path' => '',
-      'link_class' => '',
-      'alt' => '',
-      'prefix' => '',
-      'suffix' => '',
-      'target' => '',
-      'help' => '',
-      'trim' => 1,
-      'max_length' => '50',
-      'word_boundary' => 1,
-      'ellipsis' => 1,
-      'strip_tags' => 1,
-      'html' => 1,
-    ),
-    'empty' => '',
-    'hide_empty' => 0,
-    'empty_zero' => 0,
-    'exclude' => 1,
-    'id' => 'body',
-    'table' => 'pm_message',
-    'field' => 'body',
     'relationship' => 'none',
     'override' => array(
       'button' => 'Override',
@@ -180,7 +207,7 @@ $handler->override_option('fields', array(
       'alter_text' => 1,
       'text' => '<a href="/messages/view/[thread_id][unread_pagenum][count_messages-new-empty]" class="privatemsg-thread-link privatemsg-count-new-[count_messages-raw]">
 <span class="privatemsg-subject">[subject]</span> - 
-<span class="privatemsg-teaser">[body]</span></em>
+<span class="privatemsg-teaser">[thread_msg_body]</span></em>
 </a>
 <span class="marker privatemsg-thread-marker">[count_messages-new-string]</span>',
       'make_link' => 0,
@@ -218,7 +245,7 @@ $handler->override_option('fields', array(
       'count_blocked' => '0',
     ),
   ),
-  'timestamp' => array(
+  'updated' => array(
     'label' => 'Updated',
     'alter' => array(
       'alter_text' => 0,
@@ -243,10 +270,11 @@ $handler->override_option('fields', array(
     'empty_zero' => 0,
     'date_format' => 'small',
     'custom_date_format' => '',
+    'type' => 'max',
     'exclude' => 0,
-    'id' => 'timestamp',
-    'table' => 'pm_message',
-    'field' => 'timestamp',
+    'id' => 'updated',
+    'table' => 'pm_index',
+    'field' => 'updated',
     'relationship' => 'none',
   ),
 ));
@@ -328,11 +356,6 @@ $handler->override_option('arguments', array(
   ),
 ));
 $handler->override_option('filters', array(
-  'thread_id' => array(
-    'id' => 'thread_id',
-    'table' => 'pmi3',
-    'field' => 'thread_id',
-  ),
   'deleted' => array(
     'operator' => '=',
     'value' => '0',
@@ -354,6 +377,7 @@ $handler->override_option('access', array(
 $handler->override_option('cache', array(
   'type' => 'none',
 ));
+$handler->override_option('use_ajax', TRUE);
 $handler->override_option('style_plugin', 'bulk');
 $handler->override_option('style_options', array(
   'grouping' => '',
@@ -364,10 +388,10 @@ $handler->override_option('style_options', array(
     'thread_id' => 'thread_id',
     'unread_pagenum' => 'unread_pagenum',
     'participants' => 'participants',
-    'body' => 'body',
     'subject' => 'subject',
     'count_messages' => 'count_messages',
-    'timestamp' => 'timestamp',
+    'last_msg' => 'last_msg',
+    'updated' => 'updated',
   ),
   'info' => array(
     'thread_id' => array(
@@ -380,9 +404,6 @@ $handler->override_option('style_options', array(
     'participants' => array(
       'separator' => '',
     ),
-    'body' => array(
-      'separator' => '',
-    ),
     'subject' => array(
       'sortable' => 0,
       'separator' => '',
@@ -390,12 +411,15 @@ $handler->override_option('style_options', array(
     'count_messages' => array(
       'separator' => '',
     ),
-    'timestamp' => array(
+    'last_msg' => array(
+      'separator' => '',
+    ),
+    'updated' => array(
       'sortable' => 1,
       'separator' => '',
     ),
   ),
-  'default' => 'timestamp',
+  'default' => 'updated',
   'execution_type' => '1',
   'display_type' => '0',
   'hide_select_all' => 0,

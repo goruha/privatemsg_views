@@ -45,7 +45,9 @@ class privatemsg_views_handler_field_participants extends views_handler_field {
       }
     }
     // Fetch participants.
-    $this->items = privatemsg_views_get_participants($threads);
+    if (!empty($threads)) {
+      $this->items = privatemsg_views_get_participants($threads);  
+    }
   }
 
   function render($values) {

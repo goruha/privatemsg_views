@@ -28,6 +28,9 @@ class privatemsg_views_handler_field_unread_pagenum extends views_handler_field 
         $rows[$value->{$uid_alias}][$value->{$thread_alias}] = $value->{$this->field_alias};
       }
     }
+    if (empty($rows)) {
+      return;
+    }
     // Fetch page numbers.
     foreach ($rows as $uid => $threads ) {
       $this->items[$uid] = privatemsg_views_unread_page_count($uid, $threads);
@@ -40,4 +43,15 @@ class privatemsg_views_handler_field_unread_pagenum extends views_handler_field 
     $pagenum = $this->items[$uid][$thread_id];
     return check_plain($pagenum);
   }
+  
+  /**
+   * Called to add the field to a query.
+   */
+  function query() {
+    $this->ensure_my_table();
+    // Note: Do not add this field to the query.
+    $this->field_alias = $this->real_field; 
+    $this->add_additional_fields();
+  }
+  
 }

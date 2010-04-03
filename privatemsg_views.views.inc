@@ -32,21 +32,13 @@ function privatemsg_views_views_data_alter(&$data) {
     'help' => t('The ID of the private message.'),
     'argument' => array(
       'handler' => 'views_handler_argument_numeric',
-      'name field' => 'subject', // the field to display in the summary.
+      'name field' => 'subject',
       'numeric' => TRUE,
       'validate type' => 'numeric',
     ),
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,
-    ),
-  );
-  $data['pm_message']['unread_pagenum'] = array(
-    'title' => t('First unread page number'),
-    'help' => t('Page number of the first unread message in the message thread. If the whole thread is read or returns number of the page containing the message.'),
-    'real field' => 'mid',
-    'field' => array(
-      'handler' => 'privatemsg_views_handler_field_unread_pagenum',
     ),
   );
   $data['pm_message']['message_actions'] = array(
@@ -80,11 +72,11 @@ function privatemsg_views_views_data_alter(&$data) {
 
   // body
   $data['pm_message']['body'] = array(
-    'title' => t('Body'), // The item it appears as on the UI,
-    'help' => t('The body of the message.'), // The help that appears on the UI,
+    'title' => t('Body'),
+    'help' => t('The body of the message.'),
     'field' => array(
       'handler' => 'views_handler_field_markup',
-      'format' => variable_get('filter_default_format', 1), // The name of the format field or an integer
+      'format' => 'format',
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_string',
@@ -144,6 +136,7 @@ function privatemsg_views_views_data_alter(&$data) {
 
   // thread_id
   $data['pm_index']['thread_id'] = array(
+    'group' => t('Privatemsg Thread'),
     'title' => t('Message thread'),
     'help' => t('Messages thread ID.'),
     'field' => array(
@@ -152,13 +145,43 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
     'argument' => array(
       'handler' => 'views_handler_argument_numeric',
-      'name field' => 'subject', // the field to display in the summary.
+      'name field' => 'subject',
       'numeric' => TRUE,
       'validate type' => 'numeric',
     ),
   );
+  // Thread to message aggregation field.
+  $data['pm_index']['thread_msg'] = array(
+    'group' => t('Privatemsg Thread'),
+    'title' => t('Thread to message id'),
+    'help' => t('Field defined by formula to turn message list into thread list.'),
+    'real field' => 'thread_id',
+    'field' => array(
+      'handler' => 'privatemsg_views_handler_field_thread_msg',
+    ),
+  );
+  // "Updated" timestamp for the thread.
+  $data['pm_index']['updated'] = array(
+    'group' => t('Privatemsg Thread'),
+    'title' => t('Updated'),
+    'help' => t('Last thread update timestamp'),
+    'real field' => 'thread_id',
+    'field' => array(
+      'handler' => 'privatemsg_views_handler_field_updated',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+      'click sortable' => TRUE,
+    ),
+    // filtering would require HAVING most likely..
+    //'filter' => array(
+    //  'handler' => 'views_handler_filter_date',
+    //),
+  );
   // Pseudo-field to show participants.
   $data['pm_index']['participants'] = array(
+    'group' => t('Privatemsg Thread'),
     'title' => t('Participants'),
     'help' => t('Participants.'),
     'real field' => 'thread_id',
@@ -168,9 +191,10 @@ function privatemsg_views_views_data_alter(&$data) {
       'handler' => 'privatemsg_views_handler_field_participants',
       'skip base' => 'pm_index',
     ),
-  ); 
+  );
   // "number of messages in a thread" pseudo-field.
   $data['pm_index']['count_messages'] = array(
+    'group' => t('Privatemsg Thread'),
     'title' => t('Message count'),
     'help' => t('Number of messages in the thread.'),
     'real field' => 'thread_id',
@@ -178,6 +202,31 @@ function privatemsg_views_views_data_alter(&$data) {
       'handler' => 'privatemsg_views_handler_field_msg_count',
     ),
   );
+  
+  
+  //------------------------------------------------------------------------
+  // These fields require "Thread to message" field to present in the view 
+  // Thread message body .
+  $data['pm_index']['thread_msg_body'] = array(
+    'group' => t('Privatemsg Thread'),
+    'title' => t('Body'),
+    'help' => t('The body of the message.'),
+    'real field' => 'mid',
+    'field' => array(
+      'handler' => 'privatemsg_views_handler_field_thread_msg_body',
+    ),
+  );
+  // Unread page number.
+  $data['pm_index']['unread_pagenum'] = array(
+    'group' => t('Privatemsg Thread'),
+    'title' => t('First unread page number'),
+    'help' => t('Page number of the first unread message in the message thread. If the whole thread is read or returns number of the page containing the message.'),
+    'real field' => 'mid',
+    'field' => array(
+      'handler' => 'privatemsg_views_handler_field_unread_pagenum',
+    ),
+  );
+  
 
   // uid
   $data['pm_index']['uid'] = array(
@@ -185,7 +234,7 @@ function privatemsg_views_views_data_alter(&$data) {
     'help' => t('Show messages where a user is either an author or a recipient.'),
     'argument' => array(
       'handler' => 'views_handler_argument_numeric',
-      'name field' => 'participant', // the field to display in the summary.
+      'name field' => 'participant',
       'numeric' => TRUE,
       'validate type' => 'numeric',
     ),
@@ -238,75 +287,6 @@ function privatemsg_views_views_data_alter(&$data) {
     ),
   );
 
-  
-  
-  // ----------------------------------------------------------------------
-  // Pseudo tables to emulate aggregate queries.
-  
-  // first message filter table.
-  $data['pmi2']['table']['group']  = t('Privatemsg');
-  $data['pmi2']['table']['join'] = array(
-    'pm_message' => array(
-      'table' => 'pm_index',
-      'left_table' => 'pm_index',
-      'left_field' => 'uid',
-      'field' => 'uid',
-      //'extra' => 'pm_index.thread_id = pmi2.thread_id AND pm_index.mid > pmi2.mid',
-      'handler' => 'views_multiple_field_join',
-      'extra' => array(
-        'thread_id' => array(
-          'table' => 'pm_index',
-          'field' => 'thread_id',
-          'operator' => '=',
-        ),
-        'mid' => array(
-          'table' => 'pm_index',
-          'field' => 'mid',
-          'operator' => '>',
-        ),
-      ),
-    ),
-  );
-  $data['pmi2']['thread_id'] = array(
-    'title' => t('First message in a thread'),
-    'help' => t('Turns private message list into list of first messages.'),
-    'filter' => array(
-      'handler' => 'privatemsg_views_handler_filter_is_null',
-    ),
-  );
-
-  // last message filter table.
-  $data['pmi3']['table']['group']  = t('Privatemsg');
-  $data['pmi3']['table']['join'] = array(
-    'pm_message' => array(
-      'table' => 'pm_index',
-      'left_table' => 'pm_index',
-      'left_field' => 'uid',
-      'field' => 'uid',
-      //'extra' => 'pm_index.thread_id = pmi3.thread_id AND pm_index.mid < pmi3.mid',
-      'handler' => 'views_multiple_field_join',
-      'extra' => array(
-        'thread_id' => array(
-          'table' => 'pm_index',
-          'field' => 'thread_id',
-          'operator' => '=',
-        ),
-        'mid' => array(
-          'table' => 'pm_index',
-          'field' => 'mid',
-          'operator' => '<',
-        ),
-      ),
-    ),
-  );
-  $data['pmi3']['thread_id'] = array(
-    'title' => t('Last message in a thread'),
-    'help' => t('Turns private message list into list of last messages.'),
-    'filter' => array(
-      'handler' => 'privatemsg_views_handler_filter_is_null',
-    ),
-  );
-  
   // pm_block_user module
   if (module_exists('pm_block_user')) {
     $data['pm_block_user']['table']['group']  = t('Privatemsg');
@@ -354,6 +334,18 @@ function privatemsg_views_views_handlers() {
       'path' => drupal_get_path('module', 'privatemsg_views') . '/handlers',
     ),
     'handlers' => array(
+      // Aggregation handlers
+      'privatemsg_views_handler_field_thread_msg' => array(
+        'parent' => 'views_handler_field',
+      ),
+      'privatemsg_views_handler_field_updated' => array(
+        'parent' => 'views_handler_field_date',
+      ),
+      'privatemsg_views_handler_field_thread_msg_body' => array(
+        'parent' => 'views_handler_field',
+      ),
+      
+      // Normal handlers
       'privatemsg_views_handler_field_unread_pagenum' => array(
         'parent' => 'views_handler_field',
       ),
@@ -373,9 +365,6 @@ function privatemsg_views_views_handlers() {
         'parent' => 'views_handler_field',
       ),
       'privatemsg_views_handler_filter_participant' => array(
-        'parent' => 'views_handler_filter',
-      ),
-      'privatemsg_views_handler_filter_is_null' => array(
         'parent' => 'views_handler_filter',
       ),
     ),
