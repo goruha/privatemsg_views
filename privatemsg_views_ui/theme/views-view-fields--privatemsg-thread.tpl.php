@@ -39,7 +39,7 @@
     <?php print $fields['timestamp']->content; ?>
   </span>
   
-  <?php if ($fields['is_new']->content == 1): ?>
+  <?php if ($fields['is_new']->raw == 1): ?>
     <span class="views-field-<?php print $fields['is_new']->class; ?>">
       <a class="marker" id="<?php print $new_anchor ?>"><?php print t('new'); ?></a>
     </span>

@@ -47,7 +47,7 @@ function template_preprocess_privatemsg_views_ui_thread(&$variables) {
 function template_preprocess_views_view_fields__privatemsg_thread(&$variables) {
   static $num;
   $fields = $variables['fields'];
-  if ($fields['is_new']->content == 1) {
+  if (isset($fields['is_new']) && $fields['is_new']->raw == 1) {
     if (!isset($num)) {
       $num = 1;
       $variables['new_anchor'] = "new";
@@ -57,8 +57,8 @@ function template_preprocess_views_view_fields__privatemsg_thread(&$variables) {
       $variables['new_anchor'] = "new-$num";
     }
     // Set message as "read" only if a user reads his own mailbox messages.
-    if ($GLOBALS['user']->uid == $fields['uid']->content) {
-      privatemsg_message_change_status($fields['mid']->content, PRIVATEMSG_READ);
+    if (isset($fields['uid']) && isset($fields['mid']) && $GLOBALS['user']->uid == $fields['uid']->raw) {
+      privatemsg_message_change_status($fields['mid']->raw, PRIVATEMSG_READ);
     }
   }
 }

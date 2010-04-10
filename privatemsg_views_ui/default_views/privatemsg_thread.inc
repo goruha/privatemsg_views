@@ -4,7 +4,7 @@
 $view = new view;
 $view->name = 'privatemsg_thread';
 $view->description = 'Private messages in a thread';
-$view->tag = 'privatemsg';
+$view->tag = 'xz';
 $view->view_php = '';
 $view->base_table = 'pm_message';
 $view->is_cacheable = FALSE;
@@ -193,7 +193,7 @@ $handler->override_option('fields', array(
     'label' => '',
     'alter' => array(
       'alter_text' => 0,
-      'text' => '<a class="marker" id="new">[is_new]</a>',
+      'text' => '',
       'make_link' => 0,
       'path' => '',
       'link_class' => '',
@@ -206,8 +206,8 @@ $handler->override_option('fields', array(
       'max_length' => '',
       'word_boundary' => 1,
       'ellipsis' => 1,
-      'strip_tags' => 0,
       'html' => 0,
+      'strip_tags' => 0,
     ),
     'empty' => '',
     'hide_empty' => 0,
