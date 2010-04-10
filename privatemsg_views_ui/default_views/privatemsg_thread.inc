@@ -4,7 +4,7 @@
 $view = new view;
 $view->name = 'privatemsg_thread';
 $view->description = 'Private messages in a thread';
-$view->tag = 'xz';
+$view->tag = 'privatemsg';
 $view->view_php = '';
 $view->base_table = 'pm_message';
 $view->is_cacheable = FALSE;
