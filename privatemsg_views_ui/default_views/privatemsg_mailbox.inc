@@ -68,7 +68,7 @@ $handler->override_option('fields', array(
     'set_precision' => FALSE,
     'precision' => 0,
     'decimal' => '.',
-    'separator' => ',',
+    'separator' => '',
     'prefix' => '',
     'suffix' => '',
     'exclude' => 1,
