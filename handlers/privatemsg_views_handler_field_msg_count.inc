@@ -150,10 +150,10 @@ class privatemsg_views_handler_field_msg_count extends views_handler_field_prere
     $id = $this->options['id'];   
     $tokens['[' . $id . '-raw' . ']'] = $count > 0 ? $count : "0";
     $tokens['[' . $id . '-yes-no' . ']'] = $count > 0 ? t('Yes') : t('No');
-    $tokens['[' . $id . '-string' . ']'] = $count > 0 ? format_plural($count, '1 message', '@count messages', array('@count' => $count))  : '';
+    $tokens['[' . $id . '-string' . ']'] = $count > 0 ? format_plural($count, '1 message', '@count messages') : '';
     $tokens['[' . $id . '-new-empty' . ']'] = $count > 0 ? '#new' : '';
-    $tokens['[' . $id . '-new-string' . ']'] = $count > 0 ? format_plural($count, '1 new message', '@count new messages', array('@count' => $count)) : '';
-    $tokens['[' . $id . '-deleted-string' . ']'] = $count > 0 ? format_plural($count, '1 deleted message', '@count deleted messages', array('@count' => $count))  : '';
+    $tokens['[' . $id . '-new-string' . ']'] = $count > 0 ? format_plural($count, '1 new message', '@count new messages') : '';
+    $tokens['[' . $id . '-deleted-string' . ']'] = $count > 0 ? format_plural($count, '1 deleted message', '@count deleted messages')  : '';
   }
   
 }

@@ -29,7 +29,8 @@ function privatemsg_views_ui_menu_alter(&$items) {
   // Own mailbox
   $items['messages'] = array(
     'title'            => 'Messages',
-    'title callback'   => 'privatemsg_title_callback',
+    'title callback'   => '_privatemsg_views_ui_mailbox_title',
+    'title arguments'  => array(),
     'page callback'    => 'privatemsg_views_ui_mailbox',
     'page arguments'   => array(),
     'file'             => 'privatemsg_views_ui.pages.inc',
@@ -85,6 +86,21 @@ function privatemsg_views_ui_form_alter(&$form, &$form_state, $form_id) {
         uasort($form, 'element_sort');
     }
   }
+}
+
+/**
+ * Menu title callback returning correct number of new messages.
+ */
+function _privatemsg_views_ui_mailbox_title($title = NULL, $uid = NULL) {
+  if (empty($uid)) {
+    $uid = $GLOBALS['user']->uid;
+  }  
+  $count = _privatemsg_views_count_new_msg($uid);
+
+  if ($count > 0) {
+    return format_plural($count, 'Messages (1 new)', 'Messages (@count new)');
+  }
+  return t('Messages');
 }
 
 /**

@@ -142,6 +142,85 @@ function privatemsg_views_unread_page_count($uid, $threads) {
   return $pagenum;
 }
 
+/**
+ * Count number of new private messages.
+ * 
+ * This is to fix "a feature" (1) of Privatemsg where it presents number of 
+ * updated privatemsg threads as number of new messages (e.g. "new messages" 
+ * block, mailbox title).
+ * 
+ * (1) http://drupal.org/node/751906
+ * 
+ * We are not using Privatemsg query builder since we plan to get rid of it
+ * completely eventually.
+ */
+function _privatemsg_views_count_new_msg($uid) {
+  $query = array();
+  $query['select'] = array();
+  $query['where'] = array();
+  $query['groupby'] = array();
+    
+  $query['select'][] = "SELECT COUNT(pmi.mid) AS msg_count FROM {pm_index} pmi";
+     
+  if (module_exists('pm_block_user')) {
+    $query['select'][] = "LEFT JOIN {pm_message} m ON pmi.mid = m.mid";
+    $query['select'][] = "LEFT JOIN {pm_block_user} pmbu ON pmi.uid = pmbu.recipient AND m.author = pmbu.author";
+    $query['where'][] = "pmbu.recipient IS NULL";
+  }
+  
+  $query['where'][] = "pmi.deleted = 0";
+  $query['where'][] = "pmi.is_new = 1";
+  $query['where'][] = "pmi.uid = %d";
+  $query_string  = implode(' ', $query['select']);
+  $query_string .= ' WHERE (' . implode(') AND (', $query['where']) . ')';
+  return (int) db_result(db_query($query_string, $uid));
+}
+
+/**
+ * Implementation of hook_block().
+ * 
+ * Currently we implement "new messages" block, which properly counts new 
+ * messages opposed to "updated threads" counted by Privatemsg itself. 
+ */
+function privatemsg_views_block($op = 'list', $delta = 0, $edit = array()) {
+  if ('list' == $op) {
+    $blocks = array();
+    $blocks['privatemsg-views-new'] = array(
+      'info' => t('Privatemsg Views: new message indication with correct number of new messages'),
+      'cache' => BLOCK_NO_CACHE,
+    );
+
+    return $blocks;
+  }
+  elseif ('view' == $op) {
+    $block = array();
+    switch ($delta) {
+      case 'privatemsg-views-new':
+        $block = _privatemsg_views_block_new();
+        break;
+    }
+    return $block;
+  }
+}
+
+function _privatemsg_views_block_new() {
+  $block = array();
+
+  if (!privatemsg_user_access()) {
+    return $block;
+  }
+
+  $count = _privatemsg_views_count_new_msg($GLOBALS['user']->uid);  
+  if ($count) {
+    $block = array(
+      'subject' => format_plural($count, 'New message', 'New messages'),
+      'content' => theme('privatemsg_new_block', $count),
+    );
+    return $block;
+  }
+  return array();
+}
+
 //----------------------------------------------------------------
 // Theming
 
