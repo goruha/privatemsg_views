@@ -22,8 +22,10 @@ class privatemsg_views_handler_field_message_actions extends views_handler_field
     global $user;
     $mid = $values->{$this->field_alias};
     $thread_id = $values->{$this->aliases['thread_id']};
-    $author = $values->{$this->aliases['author']}; 
-    $is_blocked = $values->{$this->aliases['is_blocked']};
+    $author = $values->{$this->aliases['author']};
+    if (module_exists('pm_block_user')) {
+      $is_blocked = $values->{$this->aliases['is_blocked']};
+    }
     
     $links = array();
     
