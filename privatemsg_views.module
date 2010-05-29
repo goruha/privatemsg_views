@@ -160,7 +160,7 @@ function _privatemsg_views_count_new_msg($uid) {
   $query['where'] = array();
   $query['groupby'] = array();
     
-  $query['select'][] = "SELECT COUNT(pmi.mid) AS msg_count FROM {pm_index} pmi";
+  $query['select'][] = "SELECT COUNT(DISTINCT pmi.mid) AS msg_count FROM {pm_index} pmi";
      
   if (module_exists('pm_block_user')) {
     $query['select'][] = "LEFT JOIN {pm_message} m ON pmi.mid = m.mid";
