@@ -88,6 +88,19 @@ function privatemsg_views_ui_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
+function privatemsg_views_ui_views_pre_execute(&$view) {
+    if ($view->name == variable_get('privatemsg_views_ui_mailbox_view', 'privatemsg_mailbox')) {
+      // Views tries to optimize the query before counting. Probably because 
+      // we are doing dirty stuff with the base field (mid) it totally breaks.
+      // See http://drupal.org/node/904284.
+      
+      // Optimize the query ourselves (best effort) and feed it to Views.      
+      // Counting doesn't need 'order by' clause.
+      $query = preg_replace('/ORDER BY.*$/', '', $view->build_info['query']);      
+      $view->build_info['count_query'] = $query;      
+    }
+}
+
 /**
  * Menu title callback returning correct number of new messages.
  */
