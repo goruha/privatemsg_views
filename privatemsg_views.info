@@ -1,4 +1,3 @@
-; $Id$
 name = Privatemsg Views
 description = Integrates Views and Views Bulk Operations modules with Privatemsg
 package = Mail

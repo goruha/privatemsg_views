@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Privatemsg Views module Views hooks.

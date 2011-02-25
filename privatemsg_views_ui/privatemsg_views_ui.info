@@ -1,4 +1,3 @@
-; $Id$
 name = Privatemsg Views UI
 description = Replaces parts of Privatemsg UI with a custom ones based on Views
 package = Mail

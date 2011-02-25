@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * A handler to display "is new" field.

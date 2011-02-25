@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Participant filter to select user on behalf of who to view private message 
