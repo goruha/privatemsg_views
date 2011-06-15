@@ -1,6 +1,17 @@
 name = Privatemsg Views
 description = Integrates Views and Views Bulk Operations modules with Privatemsg
 package = Mail
-core = 6.x
+core = 7.x
 dependencies[] = privatemsg
 dependencies[] = views
+
+files[] = handlers/privatemsg_views_handler_field_is_blocked.inc
+files[] = handlers/privatemsg_views_handler_field_is_new.inc
+files[] = handlers/privatemsg_views_handler_field_message_actions.inc
+files[] = handlers/privatemsg_views_handler_field_msg_count.inc
+files[] = handlers/privatemsg_views_handler_field_thread_msg.inc
+files[] = handlers/privatemsg_views_handler_field_thread_msg_body.inc
+files[] = handlers/privatemsg_views_handler_field_unread_pagenum.inc
+files[] = handlers/privatemsg_views_handler_field_updated.inc
+files[] = handlers/privatemsg_views_handler_field_is_null.inc
+files[] = handlers/privatemsg_views_handler_field_participant.inc
