@@ -7,10 +7,10 @@
 /**
  * Implementation of hook_views_data_alter().
  */
-function privatemsg_views_views_data_alter(&$data) {  
+function privatemsg_views_views_data_alter(&$data) {
   // ----------------------------------------------------------------
   // pm_message table
-  
+
   $data['pm_message']['table']['group']  = t('Privatemsg');
   $data['pm_message']['table']['base'] = array(
     'field' => 'mid',
@@ -24,7 +24,7 @@ function privatemsg_views_views_data_alter(&$data) {
       'field' => 'author',
     ),
   );
-  
+
   // mid
   $data['pm_message']['mid'] = array(
     'title' => t('Mesage Id'),
@@ -48,7 +48,7 @@ function privatemsg_views_views_data_alter(&$data) {
       'handler' => 'privatemsg_views_handler_field_message_actions',
     ),
   );
-  
+
   // subject
   $data['pm_message']['subject'] = array(
     'title' => t('Subject'),
@@ -120,10 +120,10 @@ function privatemsg_views_views_data_alter(&$data) {
       'handler' => 'views_handler_filter_date',
     ),
   );
-  
+
   // ----------------------------------------------------------------------
   // pm_index table
-  
+
   $data['pm_index']['table']['group']  = t('Privatemsg');
   $data['pm_index']['table']['join'] = array(
     'pm_message' => array(
@@ -201,10 +201,10 @@ function privatemsg_views_views_data_alter(&$data) {
       'handler' => 'privatemsg_views_handler_field_msg_count',
     ),
   );
-  
-  
+
+
   //------------------------------------------------------------------------
-  // These fields require "Thread to message" field to present in the view 
+  // These fields require "Thread to message" field to present in the view
   // Thread message body .
   $data['pm_index']['thread_msg_body'] = array(
     'group' => t('Privatemsg Thread'),
@@ -225,10 +225,10 @@ function privatemsg_views_views_data_alter(&$data) {
       'handler' => 'privatemsg_views_handler_field_unread_pagenum',
     ),
   );
-  
+
 
   // uid
-  $data['pm_index']['uid'] = array(
+  $data['pm_index']['recipient'] = array(
     'title' => t('Participant'),
     'help' => t('Show messages where a user is either an author or a recipient.'),
     'argument' => array(
@@ -247,7 +247,7 @@ function privatemsg_views_views_data_alter(&$data) {
       'handler' => 'privatemsg_views_handler_filter_participant',
     ),
   );
-  
+
   // is_new
   $data['pm_index']['is_new'] = array(
     'title' => t('New ?'),
@@ -320,7 +320,7 @@ function privatemsg_views_views_data_alter(&$data) {
       'field' => array(
         'handler' => 'privatemsg_views_handler_field_is_blocked',
       ),
-    );    
+    );
   }
 }
 
@@ -343,7 +343,7 @@ function privatemsg_views_views_handlers() {
       'privatemsg_views_handler_field_thread_msg_body' => array(
         'parent' => 'views_handler_field',
       ),
-      
+
       // Normal handlers
       'privatemsg_views_handler_field_unread_pagenum' => array(
         'parent' => 'views_handler_field',
@@ -370,6 +370,6 @@ function privatemsg_views_views_handlers() {
   );
 }
 
-// Manually include custom join handler cause it's not included by Views unlike 
+// Manually include custom join handler cause it's not included by Views unlike
 // normal handlers.
 module_load_include('inc', 'privatemsg_views', 'handlers/views_multiple_field_join');
